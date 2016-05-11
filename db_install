@@ -1,0 +1,23 @@
+﻿CREATE TABLE users (
+   id SERIAL PRIMARY KEY,
+   name TEXT NOT NULL,
+   group_id INT NOT NULL
+);
+
+CREATE TABLE reports (
+   id SERIAL PRIMARY KEY,
+   date DATE NOT NULL,
+   amount FLOAT NOT NULL,
+   currency TEXT NOT NULL,
+   euro_amount FLOAT,
+   id_user INT NOT NULL,
+   id_invoice INT
+);
+
+CREATE TABLE invoices (
+    id SERIAL PRIMARY KEY,
+    supplier_name TEXT,
+    purpose TEXT,
+    url_pdf TEXT,
+    description TEXT
+)

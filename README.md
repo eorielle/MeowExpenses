@@ -1,2 +1,2 @@
 # MeowExpenses
-Tool for expense reports management
+Tool for expense reports management.
