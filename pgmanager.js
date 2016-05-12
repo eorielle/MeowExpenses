@@ -1,10 +1,8 @@
 var pg=require('pg');
 var constring="postgres://meowexp:123456789@localhost/meowexp";
 
-
-
 var addUser = function(name, group, password){
-  pg.connect(constring, function(err, client){
+  pg.connect(constring, function(err, client,done){
     if(err) {
       return console.error('error fetching client from pool', err);
     }
@@ -14,6 +12,7 @@ var addUser = function(name, group, password){
       }
     });
     query.on("end", function (result) {
+          done();
           client.end();
           res.write('Success');
           res.end();
@@ -22,7 +21,7 @@ var addUser = function(name, group, password){
 };
 
 var addReport = function(date,amount,currency,user,invoice){
-  pg.connect(constring, function(err, client){
+  pg.connect(constring, function(err, client, done){
     if(err) {
       return console.error('error fetching client from pool', err);
     }
@@ -33,6 +32,7 @@ var addReport = function(date,amount,currency,user,invoice){
     });
 
     query.on("end", function (result) {
+          done();
           client.end();
           res.write('Success');
           res.end();
@@ -41,7 +41,7 @@ var addReport = function(date,amount,currency,user,invoice){
 };
 
 var addInvoice = function(supplierName,purpose,urlInvoice,description){
-  pg.connect(constring, function(err, client){
+  pg.connect(constring, function(err, client, done){
     if(err) {
       return console.error('error fetching client from pool', err);
     }
@@ -51,6 +51,7 @@ var addInvoice = function(supplierName,purpose,urlInvoice,description){
       }
     });
     query.on("end", function (result) {
+          done();
           client.end();
           res.write('Success');
           res.end();
@@ -58,4 +59,6 @@ var addInvoice = function(supplierName,purpose,urlInvoice,description){
   });
 };
 
-exports.adduser = adduser;
+exports.addUser = addUser;
+exports.addReport = addReport;
+exports.addInvoice = addInvoice;
