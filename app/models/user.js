@@ -1,5 +1,6 @@
 var pg = require('pg');
 var constring = "postgres://meowexp:123456789@localhost/meowexp";
+var bcrypt = require('bcrypt-nodejs');
 
 function User(){
   this.group=0;
@@ -7,32 +8,29 @@ function User(){
   this.password="";
 
   this.save = function(callback) {
-         var conString = "postgres://carolinelouie@localhost/auth";
 
-         var client = new pg.Client(conString);
+         var client = new pg.Client(constring);
          client.connect();
 
          console.log(this.email +' will be saved');
 
-             client.query('INSERT INTO users(email, password, group_id) VALUES($1, $2)', [this.email, this.password, this.group], function (err, result) {
+             client.query('INSERT INTO users(name, pwd, group_id) VALUES($1, $2, $3)', [this.email, User.generateHash(this.password), this.group], function (err, result) {
                  if(err){
                      console.log(err);
                      return console.error('error running query', err);
                  }
-                 console.log(result.rows);
-                 //console.log(this.email);
              });
-             client.query("SELECT * from users where name=$1",[email], function(err, result){
+             client.query("SELECT * from users where name=$1",[this.email], function(err, result){
 
                  if(err){
                      return callback(null);
                  }
                  //if no rows were returned from query, then new user
                  if (result.rows.length > 0){
-                     console.log(result.rows[0] + ' is found!');
+                     console.log(result.rows[0].name + ' is found!');
                      var user = new User();
-                     user.email= result.rows[0].email;
-                     user.password = result.rows[0].password;
+                     user.email= result.rows[0].name;
+                     user.password = result.rows[0].pwd;
                      user.group = result.rows[0].group_id;
                      console.log(user.email);
                      client.end();
@@ -64,7 +62,7 @@ User.findOne = function(email, callback){
             return callback(err, isAvailable, this);
         }
         //if no rows were returned from query, then new user
-        if (result.rows.length < 0){
+        if (result.rows.length > 0){
             isAvailable = false; // update the user for return in callback
             ///email = email;
             //password = result.rows[0].password;
@@ -128,8 +126,7 @@ User.generateHash = function(password) {
 
 // checking if password is valid
 User.validPassword = function(password, cryptedPwd) {
-    return true;
-    //return bcrypt.compareSync(password, this.password);
+    return bcrypt.compareSync(password, cryptedPwd);
 };
 
 module.exports = User;

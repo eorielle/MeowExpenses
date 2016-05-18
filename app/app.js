@@ -29,7 +29,7 @@ app.config(function ($routeProvider, $locationProvider, $httpProvider){
   })
 
   .when('/signup',{
-    //controller:'SignUpController',
+    controller:'SignupController',
     templateUrl:'account/signup.html'
   })
 
@@ -77,6 +77,35 @@ app.controller('LoginController', function($scope, $rootScope, $http, $location)
       $rootScope.message = 'Authentication failed.';
       $location.url('/login');
       $scope.alerts.push({type:'danger', msg: 'Authentication failed.'});
+    });
+  };
+})
+
+.controller('SignupController', function($scope, $rootScope, $http, $location) {
+  // This object will be filled by the form
+  $scope.user = {};
+
+  // Register the login() function
+  $scope.signup = function(){
+    console.log($scope.user.username);
+    console.log($scope.user.password);
+
+    $http.post('/signup', {
+      username: $scope.user.username,
+      password: $scope.user.password,
+    })
+    .success(function(user){
+      // No error: authentication OK
+      //$scope.alerts.push({type:'succes', msg: 'Sign up successful!'});
+      $rootScope.message = 'Authentication successful!';
+      $location.url('/reports');
+
+    })
+    .error(function(){
+      // Error: authentication failed
+      $rootScope.message = 'Sign up failed.';
+      $location.url('/signup');
+      //$scope.alerts.push({type:'danger', msg: 'Authentication failed.'});
     });
   };
 })

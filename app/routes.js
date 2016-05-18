@@ -7,7 +7,10 @@ module.exports = function(app, passport) {
     });*/
 
     // Sign Up
-    app.post('/signup', passport.authenticate('local-signup'));
+    app.post('/signup', passport.authenticate('local-signup'),
+      function(req, res) {
+        res.send(req.user);
+    });
 
     // Log In
     app.post('/login', passport.authenticate('local-login'),
