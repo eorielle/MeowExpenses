@@ -2,46 +2,48 @@ var pg = require('pg');
 var constring = "postgres://meowexp:123456789@localhost/meowexp";
 var bcrypt = require('bcrypt-nodejs');
 
-function User(){
-  this.group=0;
-  this.email="";
-  this.password="";
+function User() {
+    this.id=-1
+    this.group = 0;
+    this.email = "";
+    this.password = "";
 
-  this.save = function(callback) {
+    this.save = function(callback) {
 
-         var client = new pg.Client(constring);
-         client.connect();
+        var client = new pg.Client(constring);
+        client.connect();
 
-         console.log(this.email +' will be saved');
+        console.log(this.email + ' will be saved');
 
-             client.query('INSERT INTO users(name, pwd, group_id) VALUES($1, $2, $3)', [this.email, User.generateHash(this.password), this.group], function (err, result) {
-                 if(err){
-                     console.log(err);
-                     return console.error('error running query', err);
-                 }
-             });
-             client.query("SELECT * from users where name=$1",[this.email], function(err, result){
+        client.query('INSERT INTO users(name, pwd, group_id) VALUES($1, $2, $3)', [this.email, User.generateHash(this.password), this.group], function(err, result) {
+            if (err) {
+                console.log(err);
+                return console.error('error running query', err);
+            }
+        });
+        client.query("SELECT * from users where name=$1", [this.email], function(err, result) {
 
-                 if(err){
-                     return callback(null);
-                 }
-                 //if no rows were returned from query, then new user
-                 if (result.rows.length > 0){
-                     console.log(result.rows[0].name + ' is found!');
-                     var user = new User();
-                     user.email= result.rows[0].name;
-                     user.password = result.rows[0].pwd;
-                     user.group = result.rows[0].group_id;
-                     console.log(user.email);
-                     client.end();
-                     return callback(user);
-                 }
-             });
-           };
+            if (err) {
+                return callback(null);
+            }
+            //if no rows were returned from query, then new user
+            if (result.rows.length > 0) {
+                console.log(result.rows[0].name + ' is found!');
+                var user = new User();
+                user.email = result.rows[0].name;
+                user.password = result.rows[0].pwd;
+                user.group = result.rows[0].group_id;
+                user.id=result.rows[0].id;
+                console.log(user.email);
+                client.end();
+                return callback(user);
+            }
+        });
+    };
 
 }
 
-User.findOne = function(email, callback){
+User.findOne = function(email, callback) {
     var client = new pg.Client(constring);
 
     var isAvailable = false; //we are assuming the email is taking
@@ -57,18 +59,17 @@ User.findOne = function(email, callback){
     //        return console.error('could not connect to postgres', err);
     //    }
 
-    client.query("SELECT * from users where name=$1", [email], function(err, result){
-        if(err){
+    client.query("SELECT * from users where name=$1", [email], function(err, result) {
+        if (err) {
             return callback(err, isAvailable, this);
         }
         //if no rows were returned from query, then new user
-        if (result.rows.length > 0){
+        if (result.rows.length > 0) {
             isAvailable = false; // update the user for return in callback
             ///email = email;
             //password = result.rows[0].password;
             console.log(email + ' is not available!');
-        }
-        else{
+        } else {
             isAvailable = true;
             //email = email;
             console.log(email + ' is available');
@@ -83,11 +84,11 @@ User.findOne = function(email, callback){
 
 
     });
-//});
+    //});
 };
 
 
-User.findByName = function(email, callback){
+User.findByName = function(email, callback) {
 
     var client = new pg.Client(constring);
 
@@ -95,20 +96,21 @@ User.findByName = function(email, callback){
     console.log("we are in findbyname");
 
 
-    client.query("SELECT * from users where name=$1", [email], function(err, result){
+    client.query("SELECT * from users where name=$1", [email], function(err, result) {
 
-        if(err){
+        if (err) {
             return callback(err, null);
         }
         //if no rows were returned from query, then new user
         console.log("we are in findbyname");
 
-        if (result.rows.length > 0){
+        if (result.rows.length > 0) {
             console.log(result.rows[0].name + ' is found!');
             var user = new User();
             user.email = result.rows[0].name;
             user.group = result.rows[0].group;
             user.password = result.rows[0].pwd;
+            user.id=result.rows[0].id;
 
             console.log(user.email);
             return callback(null, user);

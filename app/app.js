@@ -1,7 +1,6 @@
 var app = angular.module('meowExpenses',['ngRoute']);
 app.config(function ($routeProvider, $locationProvider, $httpProvider){
 
-
   $httpProvider.interceptors.push(function($q, $location) {
     return {
       response: function(response) {
@@ -10,6 +9,8 @@ app.config(function ($routeProvider, $locationProvider, $httpProvider){
       },
       responseError: function(response) {
         if (response.status === 401){
+          $rootScope.logged = false;
+          console.log($scope.logged);
           $location.url('/login');
           console.log("error 401");
         }
@@ -24,7 +25,7 @@ app.config(function ($routeProvider, $locationProvider, $httpProvider){
 
 //Routes
   .when('/', {
-    //controller:'MainController',
+    controller:'MainController',
     templateUrl:'home/index.html'
   })
 
@@ -39,13 +40,15 @@ app.config(function ($routeProvider, $locationProvider, $httpProvider){
   })
 
   .when('/reports',{
-    //controller:'ReportsController',
+    controller:'ReportsController',
     templateUrl:'reports/index.html'
   });
 
   //.otherwise({redirectTo:'/'});
 });
+app.controller('MainController', function($scope){
 
+});
 
 app.controller('LoginController', function($scope, $rootScope, $http, $location) {
   // This object will be filled by the form
@@ -59,8 +62,6 @@ app.controller('LoginController', function($scope, $rootScope, $http, $location)
 
   // Register the login() function
   $scope.login = function(){
-    console.log($scope.user.username);
-    console.log($scope.user.password);
     $http.post('/login', {
       username: $scope.user.username,
       password: $scope.user.password,
@@ -69,13 +70,17 @@ app.controller('LoginController', function($scope, $rootScope, $http, $location)
       // No error: authentication OK
       $scope.alerts.push({type:'succes', msg: 'Authentication successful!'});
       $rootScope.message = 'Authentication successful!';
-      $location.url('/reports');
+      $rootScope.logged = true;
+      console.log($scope.logged);
+      $location.path('/reports');
 
     })
     .error(function(){
       // Error: authentication failed
       $rootScope.message = 'Authentication failed.';
-      $location.url('/login');
+      $rootScope.logged = false;
+      console.log($scope.logged);
+      $location.path('/login');
       $scope.alerts.push({type:'danger', msg: 'Authentication failed.'});
     });
   };
@@ -87,8 +92,6 @@ app.controller('LoginController', function($scope, $rootScope, $http, $location)
 
   // Register the login() function
   $scope.signup = function(){
-    console.log($scope.user.username);
-    console.log($scope.user.password);
 
     $http.post('/signup', {
       username: $scope.user.username,
@@ -98,15 +101,63 @@ app.controller('LoginController', function($scope, $rootScope, $http, $location)
       // No error: authentication OK
       //$scope.alerts.push({type:'succes', msg: 'Sign up successful!'});
       $rootScope.message = 'Authentication successful!';
-      $location.url('/reports');
+      $rootScope.logged = true;
+      console.log($scope.logged);
+      $location.path('/reports');
 
     })
     .error(function(){
       // Error: authentication failed
       $rootScope.message = 'Sign up failed.';
-      $location.url('/signup');
+      $rootScope.logged = false;
+      console.log($scope.logged);
+      $location.path('/signup');
       //$scope.alerts.push({type:'danger', msg: 'Authentication failed.'});
     });
   };
 })
+
+.controller('ReportsController', function($scope, $rootScope, $http, getreports){
+  $scope.currencies = [
+    {name:'EUR', symbol:'€'},
+    {name:'USD', symbol:'$'},
+    {name:'CNY', symbol:'Y'}
+  ];
+  $scope.report={
+    currency:null,
+    amout:'0.00',
+    supplier:'',
+    purpose:'',
+    date:'',
+    invoiceURL:''
+  };
+
+  getreports.success(function(data){
+    console.log('Success !!! :D');
+    console.log(data.length);
+    $scope.reports = data;
+  });
+
+  $scope.addReport = function(){
+    $http.post('/addreport',$scope.report)
+    .success(function(){
+      $rootScope.message='New report added';
+      $location.path('/reports');
+    })
+    .error(function(){
+      $rootScope.message = 'Add new report failed';
+      $location.path('/reports');
+    });
+  };
+})
 ;
+
+app.factory('getreports', function($http){
+  return $http.post('/getreports')
+  .success(function(data){
+    return data;
+  })
+  .error(function(err){
+    return err;
+  });
+});

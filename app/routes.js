@@ -1,10 +1,5 @@
 module.exports = function(app, passport) {
-
-    // Main page
-    /*app.get('/', function(req, res) {
-      //res.writeHeader(200,{'Content-Type':'text/html'});
-      res.sendFile(__dirname + '/index.html');
-    });*/
+    var pgmanager = require('../pgmanager');
 
     // Sign Up
     app.post('/signup', passport.authenticate('local-signup'),
@@ -22,6 +17,39 @@ module.exports = function(app, passport) {
     app.get('/logout', function(req, res) {
         req.logout();
         res.redirect('/');
+    });
+
+    app.post('/getreports', auth, function(req, res){
+      pgmanager.getReports(req.user.id, function(err,result){
+        if(err === null){
+          console.log(result);
+          res.send(result);
+
+        } else {
+          res.send(err);
+        }
+      });
+
+    }
+
+    );
+
+    app.post('/addreport', auth, function(req,res){
+      console.log(req.body);
+      console.log(req.user.name);
+      console.log(req.user.id);
+
+      var report = req.body;
+
+      //TODO : get User ID !!!!
+      pgmanager.addReport(report,req.user.id,function(err){
+          if(err === null){
+            res.send(err);
+          } else {
+            res.send(req.report);
+          }
+      });
+
     });
 };
 

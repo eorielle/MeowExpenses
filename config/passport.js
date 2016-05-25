@@ -10,7 +10,8 @@ module.exports = function(passport) {
     passport.serializeUser(function(user, done) {
         console.log(user.email + " was serialized");
         var sessionUser = {
-            name: user.email
+            name: user.email,
+            id:user.id
         };
         done(null, sessionUser);
         //done(null, user.email);
