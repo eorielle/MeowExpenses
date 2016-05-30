@@ -33,7 +33,7 @@ function User() {
                 user.email = result.rows[0].name;
                 user.password = result.rows[0].pwd;
                 user.group = result.rows[0].group_id;
-                user.id=result.rows[0].id;
+                user.id = result.rows[0].id;
                 console.log(user.email);
                 client.end();
                 return callback(user);

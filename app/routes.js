@@ -13,18 +13,32 @@ module.exports = function(app, passport) {
         res.send(req.user);
     });
 
+/*
+    app.get('/isLogged', function(req,res){
+        if(req.isAuthenticated()){
+          res.send(req.user);
+        } else {
+          res.send(null);
+        }
+    });*/
+
+
     // Log Out
-    app.get('/logout', function(req, res) {
-        req.logout();
-        res.redirect('/');
+    app.post('/logout', function(req, res) {
+        req.logOut();
+        res.sendStatus(200);
+        //res.redirect('/');
     });
 
     app.post('/getreports', auth, function(req, res){
-      pgmanager.getReports(req.user.id, function(err,result){
+      pgmanager.getReports(req.user.id, req.body.page, function(err,count,result){
         if(err === null){
           console.log(result);
-          res.send(result);
-
+          var data = {
+            count:count,
+            result:result
+          };
+          res.send(data);
         } else {
           res.send(err);
         }
@@ -55,7 +69,7 @@ module.exports = function(app, passport) {
 
 var auth = function(req, res, next){
   if (!req.isAuthenticated())
-  	res.send(401);
+  	res.sendStatus(401);
   else
   	next();
 };

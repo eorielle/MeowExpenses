@@ -7,7 +7,6 @@ var bodyParser = require('body-parser');
 var path = require('path');
 var flash = require('connect-flash');
 
-
 // Database setup
 
 // Application setup
@@ -21,12 +20,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+
+app.use('/scripts', express.static(__dirname + '/node_modules/'));
 app.use(express.static(__dirname + "/app"));
 
 app.use(session({
   secret : 'AuFaitjesuisVRAIMENTunCHAT!',
   resave: true,
-  saveUninitialized: true
+  saveUninitialized: false,
+  cookie: { maxAge : 2628000000 }
 }));
 app.use(passport.initialize());
 app.use(passport.session());

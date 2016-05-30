@@ -20,71 +20,70 @@ var addUser = function(name, group, password){
   });
 };
 
-/*var addReport = function(date,amount,currency,user,invoice){
-  pg.connect(constring, function(err, client, done){
-    if(err) {
-      return console.error('error fetching client from pool', err);
-    }
-    var query = client.query(' INSERT INTO reports (date,amount,currency,id_user,id_invoice) VALUES ('+date + ',' + amount + ',\'' + currency + '\',' + user + ',' + invoice +'); ', function(err,result){
-      if(err) {
-        return console.error('error running query', err);
-      }
-    });
-
-    query.on("end", function (result) {
-          done();
-          client.end();
-          res.write('Success');
-          res.end();
-    });
-  });
-};
-
-var addInvoice = function(supplierName,purpose,urlInvoice,description){
-  pg.connect(constring, function(err, client, done){
-    if(err) {
-      return console.error('error fetching client from pool', err);
-    }
-    client.query(' INSERT INTO invoices (supplier_name,purpose,url_invoice,description) VALUES (\'' + supplierName + '\',\'' + purpose + '\',\'' + urlInvoice + '\',\'' + description + '\'); ', function(err,result){
-      if(err) {
-        return console.error('error running query', err);
-      }
-    });
-    query.on("end", function (result) {
-          done();
-          client.end();
-          res.write('Success');
-          res.end();
-    });
-  });
-};*/
-
-
-
   // report : json; callback(err, result)
-  var getReports = function(userID, callback){
+  var getReports = function(userID, pagenumber, callback){
     var client = new pg.Client(constring);
     client.connect();
     var res = [];
+    var count = 0;
+    var pSize = 5;
 
-    console.log('get reports of user ' + userID);
-
-    var query = client.query('SELECT * from reports r LEFT JOIN invoices i ON r.id_invoice=i.id WHERE r.id_user=$1', [userID], function(err, result) {
+    client.query('SELECT count(*) from reports WHERE id_user=$1;', [userID], function(err, result) {
         if (err) {
             console.log(err);
             return callback(err,null);
         }
+        if (result.rows.length > 0) {
+          count=result.rows[0].count;
+          console.log(count);
+
+          // get all reports
+          console.log('get reports of user ' + userID);
+          console.log(pagenumber);
+          console.log((pagenumber-1)*pSize);
+
+          var query = client.query('SELECT * from reports r LEFT JOIN invoices i ON r.id_invoice=i.id WHERE r.id_user=$1 LIMIT $2 OFFSET $3;' ,[userID, pSize,((pagenumber-1)*pSize)], function(err, result) {
+              if (err) {
+                  console.log(err);
+                  return callback(err,null,null);
+              }
+          });
+
+          query.on("row",function(row){
+            res.push(row);
+          });
+
+          query.on("end",function(){
+            client.end();
+            return callback(null, count, res);
+          });
+
+        }
     });
 
-    query.on("row",function(row){
-      res.push(row);
-    });
+  };
 
-    query.on("end",function(){
-      client.end();
-      return callback(null, res);
-    });
 
+  // get the total number of page
+  var getReportsCount = function(userID, callback){
+    var client = new pg.Client(constring);
+    client.connect();
+    var res = 0;
+
+    console.log('get reports count of user ' + userID);
+
+    client.query('SELECT count(*) from reports WHERE id_user=$1;', [userID], function(err, result) {
+        if (err) {
+            console.log(err);
+            return callback(err,null);
+        }
+        if (result.rows.length > 0) {
+          res=result.rows[0].count;
+          client.end();
+          console.log(res);
+          callback(null,res);
+        }
+    });
   };
 
 
@@ -140,3 +139,4 @@ var addReport = function(report, userID, callback){
 exports.addUser = addUser;
 exports.addReport = addReport;
 exports.getReports = getReports;
+exports.getReportsCount = getReportsCount;
